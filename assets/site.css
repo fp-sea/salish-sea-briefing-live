@@ -1,0 +1,1258 @@
+/* Salish Sea Marine Weather Briefing */
+:root{
+  --ink:#16202a; --ink-2:#41505e; --ink-3:#6b7a89;
+  --line:#dbe2e8; --line-2:#eef2f5;
+  --bg:#ffffff; --bg-2:#f6f8fa; --bg-3:#eef3f7;
+  --accent:#1f4e79; --accent-2:#a6350f;
+  --warn-bg:#fff4e5; --warn-line:#e0a355; --warn-ink:#7a4a10;
+  --alert-bg:#fdecea; --alert-line:#d9534f; --alert-ink:#8a2621;
+  --ok:#1a7a4c;
+  /* Status palette. These were inlined at 23 call sites, which is fine until
+     the page needs a second theme — then every one is a place dark mode can be
+     forgotten. Named by MEANING, so the dark set below only has to answer
+     "what is a gale here", not restate every rule. */
+  --sca-bg:#fef3c7;  --sca-ink:#92400e;  --sca-line:#fcd34d;
+  --gale-bg:#fed7aa; --gale-ink:#9a3412; --gale-line:#fb923c;
+  --storm-bg:#fecaca;--storm-ink:#991b1b;--storm-line:#f87171;
+  --smw-bg:#7a1512;  --smw-ink:#ffffff;
+  /* Table cell shading: much paler, because the text stays the thing you read
+     and the shading only ranks it. */
+  /* One hue per level, matching the badges and the lv- tags exactly.
+     Separated by HUE, not by lightness — 45deg yellow / 25deg orange / 0deg red.
+     Two earlier attempts failed here: #fefaf0 vs #fdeee2 were near-whites, and
+     #fdf3d9 vs #fbdec4 still differed by only ~21 per channel. At these
+     lightnesses a hue step reads where a brightness step does not. */
+  --cell-sca:#fceec5; --cell-gale:#fbd3b6; --cell-storm:#f9c8c8;
+  --issued-bg:#fef2f2; --issued-line:#f87171; --issued-rule:#dc2626;
+  --outlook-rule:#d97706;
+  --plus-ink:#166534; --minus-ink:#9a3412;
+  /* Lightning states: one sequential ramp, none -> trace -> possible -> likely
+     -> strong, the Lake Union briefing's order and hues. */
+  --ltg-none:#e8eef3; --ltg-trace:#c9b98a; --ltg-possible:#e8b93c;
+  --ltg-likely:#e2762c; --ltg-strong:#c8341f;
+  /* UV index, the WHO/EPA colours — the same in both themes on purpose: their
+     value is meaning here what they mean on every US forecast. */
+  --uv-low:#3ea72d; --uv-mod:#fff300; --uv-high:#f18b00; --uv-vhigh:#e53210; --uv-extreme:#b567a4;
+  /* CAPE and CIN on the instability strip (Shilshole). */
+  --cape-ink:#b45309; --cin-ink:#475569;
+  /* The simulated-reflectivity frame stays dark in both themes, as radar does. */
+  --refc-bg:#0d1620; --refc-coast:#7fa8c8; --refc-mark:#166534; --refc-mark-ring:#ffffff;
+  /* The convergence-zone profile: blue converging, amber sinking. */
+  --cz-conv:#1d4ed8; --cz-div:#b45309;
+  --map-land:#1b2530; --map-water:#16324a; --map-shore:#5b8ba6; --map-grid:#8a9aab;
+  --map-cell:#6fb3e8; --map-nws:#5eead4; --map-ring:#f08b5f; --map-cz:#c4a2f0;
+  /* The Shilshole domain map (sh_basemap). */
+  --map-land:#ece6da; --map-water:#cfe2ee; --map-shore:#9dbccf; --map-grid:#7d8b99;
+  --map-cell:#1f4e79; --map-nws:#0f766e; --map-ring:#c8341f; --map-cz:#6b21a8;
+  --on-accent:#ffffff;
+  /* Translucent page ground, for the sticky nav and the overlay button.
+     Written as rgba() rather than a hex so it can stay see-through. */
+  --scrim:rgba(255,255,255,.96); --scrim-2:rgba(255,255,255,.92);
+  --shadow:rgba(0,0,0,.18); --hairline:rgba(0,0,0,.25);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 80px}
+a{color:var(--accent)}
+h1,h2,h3,h4{line-height:1.25;margin:0 0 .4em}
+h1{font-size:1.85rem;letter-spacing:-.01em}
+h2{font-size:1.32rem;margin-top:2.4rem;padding-bottom:.35rem;border-bottom:2px solid var(--line)}
+h3{font-size:1.06rem;margin-top:1.6rem;color:var(--ink)}
+h4{font-size:.95rem;margin-top:1.1rem;color:var(--ink-2)}
+p{margin:.5em 0}
+
+/* masthead */
+.masthead{background:var(--bg-3);border-bottom:1px solid var(--line);padding:22px 0 18px;margin-bottom:6px}
+.masthead .wrap{padding-bottom:0}
+.masthead h1{margin-bottom:.15em}
+.sub{color:var(--ink-2);font-size:.94rem;margin:0}
+.times{margin-top:14px;border-collapse:collapse;font-size:.86rem;font-family:var(--mono)}
+.times td,.times th{border:1px solid var(--line);padding:4px 10px;text-align:left}
+.times th{background:var(--bg-2);font-weight:600}
+
+/* jump list */
+.jump{position:sticky;top:0;z-index:20;background:var(--scrim);
+  border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:10px;
+  backdrop-filter:saturate(180%) blur(6px)}
+.jump .wrap{padding-bottom:0;display:flex;flex-wrap:wrap;gap:6px 14px}
+.jump a{font-size:.83rem;text-decoration:none;color:var(--ink-2);white-space:nowrap}
+.jump a:hover{color:var(--accent);text-decoration:underline}
+
+/* the standing source-link affordance, identical everywhere */
+.src{font-size:.76rem;font-weight:400;color:var(--ink-3);text-decoration:none;
+  margin-left:.5em;white-space:nowrap}
+.src:hover{color:var(--accent)}
+.src::after{content:"↗";font-size:.72rem;margin-left:.18em;opacity:.75}
+
+/* notices */
+.notice{border:1px solid var(--warn-line);background:var(--warn-bg);color:var(--warn-ink);
+  padding:10px 14px;border-radius:5px;font-size:.9rem;margin:14px 0}
+.notice strong{color:inherit}
+.stale{border:1px solid var(--alert-line);background:var(--alert-bg);color:var(--alert-ink);
+  padding:3px 7px;border-radius:4px;font-size:.74rem;font-weight:600;display:inline-block}
+
+/* hazard badges */
+.badge{display:inline-block;padding:3px 9px;border-radius:4px;font-size:.76rem;
+  font-weight:600;letter-spacing:.01em;margin:0 6px 4px 0}
+.badge-sca{background:var(--sca-bg);color:var(--sca-ink);border:1px solid var(--sca-line)}
+.badge-gale{background:var(--gale-bg);color:var(--gale-ink);border:1px solid var(--gale-line)}
+.badge-storm{background:var(--storm-bg);color:var(--storm-ink);border:1px solid var(--storm-line)}
+/* A WATCH is not a WARNING, but it is the same HAZARD — so it keeps its level's
+   hue and says so by being hollow rather than filled. Colouring watches red
+   regardless of level was what made a gale watch badge disagree with the gale
+   swatch in the table key. */
+.badge-is-watch{background:transparent;font-style:normal}
+.badge-smw{background:var(--smw-bg);color:var(--smw-ink);border:1px solid var(--smw-bg)}
+.badge-none{background:var(--bg-2);color:var(--ink-3);border:1px solid var(--line)}
+/* Not the same as "none": the lookup did not answer, so nothing is known. */
+.badge-unchecked{background:var(--sca-bg);color:var(--sca-ink);border:1px dashed var(--sca-line)}
+
+/* zone blocks — full text, nothing hidden or scrolled */
+.zonegroup{margin-top:1.5rem}
+.zone{border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:12px 0;
+  background:var(--bg)}
+.zone-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:6px}
+.zone-code{font-family:var(--mono);font-size:.8rem;color:var(--ink-3)}
+.zone-name{font-weight:650;font-size:1rem}
+.period{margin:.35em 0;font-size:.93rem}
+.period b{color:var(--accent);font-weight:650}
+
+/* wide tables: horizontal scroll, sticky first column */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin:12px 0}
+/* table-layout:fixed so every forecast column is the SAME width. With auto
+   layout one long weather string ("RAIN LIKELY. PATCHY FOG. VSBY 1 NM OR LESS")
+   stretched its own column to fit on a single line and squeezed the rest, so
+   columns holding the same kind of value ended up wildly different widths and
+   nothing lined up down the row. Widths are declared on the header cells, which
+   is where fixed layout reads them from. */
+table.grid{border-collapse:separate;border-spacing:0;font-size:.83rem;
+  table-layout:fixed;width:max-content;min-width:100%}
+table.grid th,table.grid td{border-bottom:1px solid var(--line-2);
+  border-right:1px solid var(--line-2);padding:7px 10px;text-align:left;
+  vertical-align:top;white-space:normal;overflow-wrap:break-word}
+table.grid thead th{width:158px}
+table.grid thead th:first-child{width:172px}
+/* NOTE: no sticky `top` on any header inside .tablewrap. overflow-x:auto makes
+   the wrapper the sticky containing block, so `top` does not pin to the viewport
+   — it just pushes the header row that many pixels DOWN inside the box, letting
+   the taller first-column cell ride up above it. The standing rule is horizontal
+   scroll with a sticky FIRST COLUMN, which is what is implemented. */
+table.grid thead th{background:var(--bg-2);z-index:2;
+  font-weight:650;font-size:.79rem}
+table.grid tbody th.rowhead,table.grid tbody td.rowhead{position:sticky;left:0;z-index:1;
+  background:var(--bg);border-right:2px solid var(--line);font-weight:600;
+  min-width:170px;white-space:normal}
+table.grid thead th:first-child{position:sticky;left:0;z-index:3;background:var(--bg-2)}
+table.grid tr.grouphead th{background:var(--bg-3);font-weight:700;font-size:.82rem;
+  letter-spacing:.02em;position:sticky;left:0}
+/* The one thing that must NOT wrap: a wind value split across two lines
+   ("S 10 KT" -> "S 10" / "KT") is unreadable at a glance. */
+.cell-wind{font-family:var(--mono);font-size:.82rem;white-space:nowrap;display:block}
+.cell-sub{color:var(--ink-3);font-size:.76rem;display:block}
+.na{color:var(--ink-3)}
+
+/* image grids */
+.matrix{width:100%;border-collapse:separate;border-spacing:0;font-size:.84rem;
+  table-layout:fixed;min-width:840px}
+.matrix col.lead{width:17.5%}
+.matrix th,.matrix td{border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.matrix thead th:first-child,.matrix tbody th{border-left:1px solid var(--line)}
+.matrix thead th{border-top:1px solid var(--line)}
+/* Standing rule for wide tables: horizontal scroll with the labels pinned.
+   Without this the product name scrolls out of view and the reader cannot tell
+   a 500 mb chart from a wind/wave one. */
+.matrix tbody th,.matrix thead th:first-child{position:sticky;left:0;z-index:2;
+  text-align:left;border-right:2px solid var(--line)}
+.matrix tbody th{background:var(--bg)}
+.matrix thead th:first-child{background:var(--bg-2);z-index:3}
+.matrix th,.matrix td{border:1px solid var(--line);padding:6px;text-align:center;
+  vertical-align:top}
+.matrix th{background:var(--bg-2);font-weight:650}
+.matrix td img{width:100%;height:auto;display:block;border-radius:3px}
+.figs{display:grid;gap:18px;margin:14px 0}
+.fig{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg)}
+/* The click-through wrapper must be block: an inline anchor becomes a
+   shrink-to-fit containing block, so width:100% on the image resolves against
+   the image's own size instead of the figure's. */
+.fig a{display:block}
+.loopwrap{position:relative}
+.playbtn{position:absolute;left:12px;bottom:12px;font:inherit;font-size:.84rem;
+  padding:7px 13px;border-radius:5px;border:1px solid var(--hairline);
+  background:var(--scrim-2);color:var(--ink);cursor:pointer;
+  box-shadow:0 1px 4px var(--shadow)}
+.playbtn:hover{background:var(--bg)}
+.playbtn .muted{font-size:.78rem}
+.fig img{width:100%;height:auto;display:block}
+.fig figcaption{padding:9px 13px;font-size:.83rem;color:var(--ink-2);
+  border-top:1px solid var(--line-2);background:var(--bg-2)}
+ /* Two-up on desktop, stacking on narrow screens. min(100%,..) stops the
+   track from overflowing its container below the breakpoint. */
+.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+/* Imagery panels are reference material, not the subject of the page. Capping
+   their height stops a single satellite frame from occupying a whole screen and
+   pushing the forecast text out of reach. Full resolution stays one click away. */
+.figs.compact .fig img{max-height:380px;width:auto;max-width:100%;margin:0 auto}
+.figs.compact .fig a{display:flex;justify-content:center}
+/* Four ASCAT passes read as a 2x2 time series; each still clicks through to
+   the full-resolution original. */
+.quad{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+@media (min-width:760px){.quad{grid-template-columns:1fr 1fr}}
+
+/* currents day tabs — CSS-only, no JS */
+.tabwrap{margin:14px 0}
+.tabinput{position:absolute;opacity:0;pointer-events:none}
+.tablabels{display:flex;flex-wrap:wrap;gap:4px;border-bottom:2px solid var(--line);
+  margin-bottom:-1px}
+.tablabels label{font-size:.85rem;padding:7px 14px;border:1px solid var(--line);
+  border-bottom:none;border-radius:5px 5px 0 0;background:var(--bg-2);cursor:pointer;
+  color:var(--ink-2);user-select:none;position:relative;top:2px}
+.tablabels label:hover{background:var(--bg-3);color:var(--ink)}
+.tabpanel{display:none}
+.pre{white-space:pre-wrap;font-family:var(--mono);font-size:.82rem;line-height:1.5;
+  margin:0;color:var(--ink)}
+.afd h4{margin-top:1.3rem}
+.muted{color:var(--ink-3);font-size:.86rem}
+.pending{border:1px dashed var(--line);border-radius:6px;padding:16px 18px;
+  color:var(--ink-3);font-size:.88rem;background:var(--bg-2);margin:12px 0}
+footer{margin-top:3rem;padding-top:18px;border-top:2px solid var(--line);
+  font-size:.85rem;color:var(--ink-2)}
+footer ul{padding-left:1.1rem}
+
+/* ---- synced model viewer -------------------------------------------------
+   Two panes, each choosing any run, driven by ONE time control. A fixed 2x2
+   grid does not survive adding models (UW WRF's runs would make it 3x2+ and
+   every panel would shrink); a selectable pair stays legible and lets any two
+   runs be compared, including two runs of the SAME model to judge run-to-run
+   consistency. Matching is on valid time throughout. */
+.mv{border:1px solid var(--line);border-radius:8px;margin:14px 0;
+  background:var(--bg)}
+.mv-controls{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--bg-2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mv-controls button{font:inherit;font-size:.9rem;padding:5px 11px;border-radius:5px;
+  border:1px solid var(--line);background:var(--bg);cursor:pointer;color:var(--ink);
+  min-width:38px}
+.mv-controls button:hover{background:var(--bg-3)}
+.mv-controls button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.mv-controls input[type=range]{flex:1;min-width:150px;accent-color:var(--accent)}
+.mv-time{font-family:var(--mono);font-size:.85rem;white-space:nowrap}
+.mv-time b{color:var(--accent)}
+.mv-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line)}
+@media (min-width:760px){.mv-grid{grid-template-columns:1fr 1fr}}
+.mv-cell{background:var(--bg);position:relative;min-height:120px}
+/* The slot holds its box whether or not a frame exists for this valid time.
+   Without it an empty pane collapses to the height of its placeholder text and
+   the whole viewer jumps every time you step past the end of a run. The exact
+   ratio is injected from a real rendered frame. */
+.mv-slot{position:relative;width:100%}
+/* Scoped to .mv-slot, NOT .mv-cell: an absolute rule on every image in the cell
+   also catches the legend inside .mv-key, which then positions against the cell
+   and lands on top of the selector row. */
+.mv-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  display:block}
+.mv-slot .mv-empty{position:absolute;inset:0}
+.mv-pick{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  border-bottom:1px solid var(--line-2);background:var(--bg-2)}
+.mv-pick select{font:inherit;font-size:.86rem;padding:4px 8px;border-radius:5px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);flex:1;
+  min-width:0}
+.mv-lead{font-family:var(--mono);font-size:.76rem;color:var(--ink-3);white-space:nowrap}
+/* column, not row: in a row flex container a <br> between the two lines is
+   inert and they run together as one sentence. */
+.mv-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:3px;
+  padding:20px;color:var(--ink-3);font-size:.86rem;line-height:1.5;
+  background:repeating-linear-gradient(45deg,var(--bg-2),var(--bg-2) 9px,
+    var(--bg) 9px,var(--bg) 18px)}
+/* Per-pane key. A single shared legend under the viewer would be a lie the
+   moment one pane shows a pre-rendered model on its own scale. */
+.mv-key{padding:6px 10px 8px;background:var(--bg);border-top:1px solid var(--line-2);
+  min-height:34px;display:flex;align-items:center;justify-content:center}
+.mv-key img{width:100%;max-width:420px;height:auto;display:block}
+.mv-ownscale{font-size:.78rem;color:var(--ink-3);text-align:center;line-height:1.4}
+/* ---- transcript: cleaned / raw ------------------------------------------ */
+.tx{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:14px 0}
+.tx-head{display:flex;flex-wrap:wrap;gap:4px;padding:9px 12px 0;background:var(--bg-2);
+  border-bottom:1px solid var(--line)}
+.tx-head label{font-size:.85rem;padding:7px 14px;border:1px solid var(--line);
+  border-bottom:none;border-radius:5px 5px 0 0;background:var(--bg-3);cursor:pointer;
+  color:var(--ink-2);position:relative;top:1px;user-select:none}
+.tx-head label:hover{color:var(--ink)}
+.tx input{position:absolute;opacity:0;pointer-events:none}
+/* A scroll box, not a wall. Measured 2026-09-02: the default tab alone rendered
+   9,295 px of transcript — eleven screens — and the block was 21% of the whole
+   page, for one of four videos. The reader wants to be able to look at it, not
+   to have to scroll past it to reach the tides.
+   clamp so it is a comfortable read on a laptop without swallowing a phone:
+   55vh gives ~450 px on a 812 px screen, leaving page either side to scroll by.
+   Scroll chaining is left at its default — trapping the page at the end of a
+   tall nested scroller is the more annoying failure on touch. */
+.tx-body{padding:16px 18px;max-width:74ch;
+  max-height:clamp(300px,55vh,640px);overflow-y:auto;
+  border-top:1px solid var(--line);background:var(--bg-2)}
+.tx-body p{margin:0 0 .85em}
+.tx-pane{display:none}
+.tx-note{color:var(--ink-3);font-size:.84rem;padding:0 18px 14px}
+
+/* ---- meteogram toggle -------------------------------------------------- */
+/* Checkbox-driven, like the transcript and day tabs: the page ships with no
+   behavioural JS outside the model viewer, and a disclosure does not need any.
+   Collapsed by default — these are a deeper read than the panel above them. */
+.mt{margin:10px 0 22px}
+.mt-cb{position:absolute;opacity:0;pointer-events:none}
+.mt-label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font-size:.84rem;font-weight:600;color:var(--accent);
+  border:1px solid var(--line);border-radius:7px;padding:6px 12px;background:var(--bg-2)}
+.mt-label:hover{background:var(--bg-3)}
+.mt-label::before{content:"▸";font-size:.8rem;line-height:1}
+.mt-cb:checked + .mt-label::before{content:"▾"}
+.mt-cb:focus-visible + .mt-label{outline:2px solid var(--accent);outline-offset:2px}
+.mt-off{display:none}
+.mt-cb:checked + .mt-label .mt-on{display:none}
+.mt-cb:checked + .mt-label .mt-off{display:inline}
+.mt-body{display:none;margin-top:12px}
+.mt-cb:checked ~ .mt-body{display:block}
+
+/* Interactive SVG charts. An <object> has no intrinsic sizing the way an <img>
+   does, so width/height come from here or it collapses to a 300x150 default. */
+.chart-svg{display:block;width:100%;height:auto;aspect-ratio:10 / 5.8;border:0}
+.figs.two .chart-svg,.fig .chart-svg{max-width:100%}
+
+/* The station overview is a tall single map (0.77 w/h); at full column width it
+   dominated the section it introduces, so it is held to roughly half. */
+.fig.wide{max-width:660px;margin:0 auto 18px}
+/* Seven stations up one channel: the map is tall and narrow, so a
+   width cap barely touches its height. Cap the height instead and let
+   the width follow. */
+.fig.tall img{max-height:46vh;width:auto;max-width:100%;margin:0 auto}
+.fig.tall{max-width:none;display:flex;flex-direction:column;align-items:center}
+.fig.tall figcaption{max-width:660px}
+.fig.wide img{width:100%;height:auto}
+
+/* AFD prose. Unwrapped from the teletype source, so it is set as prose rather
+   than the monospace pre block the raw form needed. */
+.afd-p{margin:0 0 .75rem;line-height:1.6;max-width:70ch}
+.afd-p:last-child{margin-bottom:0}
+
+/* Hover readout on the currents panels. Monospace and a minimum width so the
+   pane header does not reflow as the number changes under the cursor. */
+.cv-readout{font-family:var(--mono);font-size:.78rem;color:var(--accent);
+  margin-left:auto;min-width:13ch;text-align:right}
+
+/* A model pane whose frames span two cycles. Loud enough to notice, not so loud
+   it implies the whole page is wrong — only that pane is affected. */
+.mv-warn{display:block;font-size:.78rem;line-height:1.4;color:var(--minus-ink);
+  background:var(--warn-bg);border:1px solid var(--gale-line);border-radius:5px;
+  padding:5px 8px;margin-bottom:6px}
+
+/* ---- upcoming-threshold outlook, schedule, related links ---------------- */
+.outlook{border:1px solid var(--line);border-left:4px solid var(--outlook-rule);border-radius:8px;
+  padding:12px 16px;margin:14px 0;background:var(--bg-2)}
+.outlook ul{margin:8px 0 6px;padding-left:0;list-style:none}
+.outlook li{padding:3px 0;font-size:.9rem;line-height:1.45}
+.lv-tag{display:inline-block;min-width:9.5ch;font-size:.72rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.03em;padding:2px 7px;margin-right:8px;
+  border-radius:4px;text-align:center;vertical-align:1px}
+.lv-sca   .lv-tag{background:var(--sca-bg);color:var(--sca-ink);border:1px solid var(--sca-line)}
+.lv-gale  .lv-tag{background:var(--gale-bg);color:var(--gale-ink);border:1px solid var(--gale-line)}
+.lv-storm .lv-tag{background:var(--storm-bg);color:var(--storm-ink);border:1px solid var(--storm-line)}
+.upd,.rel{margin:8px 0 0;font-size:.85rem}
+
+/* A product OPC has stopped reissuing. Occupies the cell so the matrix keeps
+   its shape, but shows nothing that could be mistaken for a live forecast. */
+.opc-suspended{display:flex;flex-direction:column;gap:3px;align-items:center;
+  justify-content:center;min-height:96px;padding:10px 8px;text-align:center;
+  border:1px dashed var(--line);border-radius:6px;background:var(--bg-2);
+  font-size:.78rem;line-height:1.35}
+.opc-suspended > span:first-child{font-weight:700;color:var(--sca-ink);
+  text-transform:uppercase;letter-spacing:.04em;font-size:.72rem}
+
+/* ---- issue times at the top of a section, and on each OPC chart ---------
+   One line where it fits: issued (local, then Z), how old, until when, and a
+   badge. Tokens only, so both themes hold. */
+.ptimes{display:flex;flex-wrap:wrap;gap:3px 14px;align-items:baseline;margin:4px 0 12px;
+  padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg-2);
+  font-size:.84rem;line-height:1.4}
+.ptimes b{font-weight:650}
+.pstate{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.74rem;font-weight:700;
+  letter-spacing:.02em;border:1px solid var(--line);background:var(--bg);color:var(--ink-2)}
+.ptimes .pstate{margin-left:auto}
+.pstate[data-state="late"]{background:var(--sca-bg);color:var(--sca-ink);border-color:var(--sca-line)}
+.pstate[data-state="stale"],.pstate[data-state="expired"]{background:var(--gale-bg);
+  color:var(--gale-ink);border-color:var(--gale-line)}
+.opc-meta{margin-top:5px;font-size:.74rem;line-height:1.4;text-align:left}
+.opc-meta .pstate{margin-top:3px}
+.opc-flag{color:var(--sca-ink)}
+.opc-run{display:block;margin-top:4px;font-weight:400;font-size:.74rem;color:var(--ink-3)}
+/* A stale chart is still shown — it is the newest OPC has — but dimmed so it
+   does not read at a glance as current guidance. */
+.opc-cell.st-stale img{opacity:.55}
+@media (max-width: 700px){ .ptimes .pstate{margin-left:0} }
+
+/* ---- lightning --------------------------------------------------------- */
+.ltg-areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:10px 0 16px}
+.ltg-area{border:1px solid var(--line);border-left:5px solid var(--ltg-none);border-radius:8px;
+  padding:9px 12px;background:var(--bg-2);font-size:.9rem;line-height:1.45}
+.ltg-area[data-state="note"]{border-left-color:var(--ltg-trace)}
+.ltg-area[data-state="watch"]{border-left-color:var(--ltg-possible)}
+.ltg-area[data-state="alert"]{border-left-color:var(--ltg-strong);background:var(--alert-bg)}
+.ltg-area h4{margin:0 0 3px;font-size:.95rem;color:var(--ink)}
+.ltg-area .ltg-head{font-weight:650}
+.ltg-tl{border-collapse:separate;border-spacing:1px;table-layout:fixed;font-size:.7rem;
+  min-width:640px;width:100%}
+.ltg-tl th{font-weight:500;color:var(--ink-3);text-align:left;white-space:nowrap;padding:0 4px 0 0}
+.ltg-tl th.ltg-src{width:9.5rem;color:var(--ink-2)}
+.ltg-tl thead th{font-size:.66rem;padding:0;overflow:visible}
+.ltg-tl tr.ltg-grp th{padding-top:8px;color:var(--ink);font-weight:650;font-size:.78rem}
+.ltg-tl td{height:13px;padding:0;background:var(--ltg-none);border-radius:1px}
+.ltg-tl td.s-trace{background:var(--ltg-trace)}
+.ltg-tl td.s-possible,.ltg-tl td.s-flagged{background:var(--ltg-possible)}
+.ltg-tl td.s-likely{background:var(--ltg-likely)}
+.ltg-tl td.s-strong{background:var(--ltg-strong)}
+/* Does not reach: a source that cannot answer, which is NOT the same as no. */
+.ltg-tl td.s-no_reach{background:transparent;border-bottom:1px dotted var(--line)}
+.ltg-tl td.past{opacity:.35}
+/* Where a model's source steps from its hourly run to the older extended one. */
+.ltg-tl td.seam{box-shadow:inset 2px 0 0 var(--ink)}
+.ltg-key i.seam{background:var(--ltg-none);box-shadow:inset 2px 0 0 var(--ink)}
+.ltg-tl td.day0{box-shadow:inset 1px 0 0 var(--ink-3)}
+.ltg-key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--ink-2);margin:6px 0}
+.ltg-key i{display:inline-block;width:12px;height:10px;margin-right:4px;vertical-align:-1px;border-radius:1px;
+  background:var(--ltg-none)}
+.ltg-key i.s-trace{background:var(--ltg-trace)} .ltg-key i.s-possible{background:var(--ltg-possible)}
+.ltg-key i.s-likely{background:var(--ltg-likely)} .ltg-key i.s-strong{background:var(--ltg-strong)}
+.ltg-key i.s-no_reach{background:transparent;border-bottom:1px dotted var(--ink-3)}
+.ltg-maps{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:10px 0}
+.ltg-maps figure{margin:0}
+.ltg-maps img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:6px}
+.ltg-maps figcaption{font-size:.8rem;color:var(--ink-2);margin-top:4px}
+/* A single map (the Shilshole ring) at a readable size, not the full column
+   width it took on the page — ~1100 px of mostly unlit terrain. */
+.ltg-maps.one{grid-template-columns:minmax(0,480px)}
+
+/* ---- Shilshole page ----------------------------------------------------- */
+.sh-now{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:8px 0 14px}
+.sh-card{padding:9px 12px;border:1px solid var(--line-2);border-radius:8px;background:var(--bg-2);
+  font-size:.88rem;line-height:1.4}
+.sh-card.ltg-area{border-left-width:5px}
+.sh-pt,.sh-ev{border-collapse:collapse;font-size:.84rem;width:100%}
+.sh-pt th,.sh-pt td,.sh-ev th,.sh-ev td{padding:3px 8px;border-bottom:1px solid var(--line-2);
+  text-align:left;white-space:nowrap}
+.sh-pt thead th,.sh-ev thead th{color:var(--ink-3);font-weight:600;font-size:.76rem}
+.sh-pt tr.sh-day th{padding-top:10px;color:var(--ink);font-weight:650;border-bottom:1px solid var(--line)}
+.sh-pt td.sh-tstm{background:var(--sca-bg);color:var(--sca-ink);font-weight:600}
+tr.past{opacity:.4}
+.sh-lnm{padding-left:1.1rem;font-size:.9rem;line-height:1.5}
+/* The Shilshole map viewer: two panes, one row. By id, like #cv: the class
+   lost to .mv's own two-row budget and the maps were capped at a third of the
+   window. */
+#shv,#scv{--mv-rows:1}
+#scv{max-width:640px}
+#scv .mv-grid{grid-template-columns:1fr}
+.uwpane img{image-rendering:pixelated}
+/* Midnight dashed and sunrise/sunset dotted across a chart's panels. */
+.ch-rule-mid{stroke:var(--ink-3);stroke-width:.8;stroke-dasharray:4 3;opacity:.7}
+.ch-rule-sun{stroke:var(--ink-3);stroke-width:.8;stroke-dasharray:1 3;opacity:.8}
+.ch-tick-strong{font-weight:700;fill:var(--ink)}
+.shv .mv-grid{grid-template-columns:1fr 1fr}
+@media (max-width: 700px){ .shv .mv-grid{grid-template-columns:1fr} }
+.sh-words{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin:6px 0}
+.sh-word h4{margin:0 0 2px}
+.sh-word p{margin:0;line-height:1.5}
+.sh-live{font-weight:600;color:var(--ink)}
+/* The zone forecast period the reader is in; finished ones dimmed. */
+.period.sh-cur{border-left:3px solid var(--accent);padding-left:8px;background:var(--bg-2)}
+.period.past{opacity:.45}
+.plan{margin:6px 0 4px}
+.plan-controls{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:.9rem;margin-bottom:6px}
+.plan-controls select{font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:6px;
+  background:var(--bg);color:var(--ink)}
+.plan-said{margin:4px 0 8px}
+.sh-lnm li{margin:0 0 8px}
+.sh-lnm-kind{display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;color:var(--ink-2);margin-right:4px}
+
+/* ---- Shilshole: sun & UV (ported from the Lake Union briefing) ---------- */
+/* The lights line leads the section: sunset and sunrise are what bind. */
+.sun-lights{margin:6px 0 4px}
+.sun-wrap{max-width:520px}
+table.grid.sun thead th,table.grid.sun thead th:first-child{width:auto}
+table.grid.sun td,table.grid.sun3 td{font-family:var(--mono);text-align:center}
+tr.sun-key td,td.sun-key{font-weight:700;color:var(--ink)}
+table.grid.sun3 thead th,table.grid.sun3 thead th:first-child{width:auto;white-space:nowrap}
+
+.uv-head{margin:6px 0 2px}
+.uv-head[data-state="watch"] strong{color:var(--warn-ink)}
+.uv-head[data-state="alert"] strong{color:var(--alert-ink)}
+
+/* The UV curve, Lake Union's: bars in the WHO colours, gridlines at the band
+   boundaries. Padding on the CHART, not the bars: the hour labels hang below
+   the plot, so their room is reserved by the parent or they land on the
+   caption. */
+.uvfig{margin:.9rem 0}
+.uvchart{display:flex;max-width:600px;padding:1.5rem 0 1.5rem}
+.uvaxis{position:relative;width:1.6rem;height:110px;flex:none}
+.uvtick{position:absolute;right:.35rem;transform:translateY(50%);
+  font-size:.66rem;color:var(--ink-3);line-height:1}
+.uvunit{position:absolute;right:.35rem;top:-1.45rem;font-size:.66rem;color:var(--ink-3)}
+.uvplot{position:relative;flex:1;min-width:0}
+.uvgrid{position:absolute;left:0;right:0;height:1px;background:var(--line)}
+.uvbars{display:flex;align-items:flex-end;gap:2px;height:110px;padding:0;position:relative;
+  touch-action:pan-y;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.uvbar{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;
+  position:relative;min-width:0;cursor:default}
+.uvbar-fill{display:block;width:100%;border-radius:2px 2px 0 0;min-height:2px;
+  background:var(--uv-low)}
+.uv-3 .uvbar-fill,.uv-4 .uvbar-fill,.uv-5 .uvbar-fill{background:var(--uv-mod)}
+.uv-6 .uvbar-fill,.uv-7 .uvbar-fill{background:var(--uv-high)}
+.uv-8 .uvbar-fill,.uv-9 .uvbar-fill,.uv-10 .uvbar-fill{background:var(--uv-vhigh)}
+.uv-11 .uvbar-fill{background:var(--uv-extreme)}
+/* A zero hour keeps a sliver, so the row reads as hours with nothing in them
+   rather than missing data — and an hour the feed left out gets NO sliver,
+   because that one is missing data. */
+.uv-0 .uvbar-fill{background:var(--line)}
+.uv-none .uvbar-fill{background:none;min-height:0}
+.uvbar-tick{position:absolute;bottom:-1.2rem;left:0;font-size:.62rem;
+  color:var(--ink-3);white-space:nowrap}
+/* The hour the reader is in (marked client-side), and the one being read. */
+.uvbar.now .uvbar-fill{outline:2px solid var(--accent-2);outline-offset:1px}
+.uvbar.sel{background:var(--bg-3)}
+.uvread{min-height:1.3em;margin:0 0 2px 1.6rem}
+.uvfig figcaption{font-size:.83rem;color:var(--ink-2)}
+
+/* ---- Shilshole: instability ------------------------------------------- */
+.shi-key span{display:inline-flex;align-items:center}
+.shi-ramp{display:inline-flex;flex:0 0 auto;border-radius:2px;overflow:hidden;margin-right:4px;vertical-align:-1px}
+.ltg-key .shi-ramp i{width:9px;height:10px;margin:0;border-radius:0}
+.ltg-key i.shi-best{background:none;border:1.5px dashed var(--accent-2)}
+.hov .shi-read{margin:5px 0 0;color:var(--ink-2);font-size:.76rem;line-height:1.4;white-space:normal}
+.shi-hint{margin:4px 0 0;font-size:.78rem;font-style:italic}
+
+/* ---- Shilshole: simulated reflectivity -------------------------------- */
+.refc-fig{margin:14px 0;max-width:600px}
+.refc{position:relative;width:100%;border-radius:6px;overflow:hidden;
+  border:1px solid var(--line);background:var(--refc-bg);touch-action:pan-y;cursor:ew-resize}
+.refc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.refc-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .75rem;margin-bottom:.4rem;
+  font-size:.85rem;color:var(--ink-2)}
+.refc-head strong{color:var(--ink)}
+.refc-head .muted{margin-left:auto}
+.refc-frame{position:absolute;inset:0;width:100%;height:100%;opacity:0;image-rendering:pixelated}
+.refc-frame.on{opacity:1}
+.refc-over{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.refc-coast path{fill:none;stroke:var(--refc-coast);stroke-width:1.1;opacity:.9}
+.refc-home{fill:var(--refc-mark);stroke:var(--refc-mark-ring);stroke-width:1.5}
+.refc-bar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .6rem;margin:.55rem 0 .35rem}
+.refc-btn{font:inherit;font-size:.85rem;cursor:pointer;min-width:38px;min-height:34px;
+  padding:.2rem .6rem;border:1px solid var(--line);border-radius:5px;
+  background:var(--bg-2);color:var(--ink-2)}
+.refc-btn:hover{color:var(--ink);background:var(--bg-3)}
+.refc-btn.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.refc-play{min-width:4.6rem}
+.refc-scrub{flex:1;min-width:6rem;accent-color:var(--accent)}
+.refc-now{font-family:var(--mono);font-size:.82rem;color:var(--ink);white-space:nowrap}
+.refc-legend{display:flex;flex-wrap:wrap;align-items:center;gap:.15rem .5rem;
+  font-size:.72rem;color:var(--ink-2);margin-bottom:.5rem}
+.refc-swatch{display:inline-flex;align-items:center;gap:3px}
+.refc-swatch i{display:inline-block;width:11px;height:11px;border-radius:2px}
+.refc-fig figcaption{font-size:.83rem;color:var(--ink-2)}
+@media (max-width:600px){
+  .refc-scrub{order:10;min-width:100%;height:28px}
+  .refc-now{flex:1 1 auto;white-space:normal}
+}
+
+/* ---- Shilshole: the domain map ---------------------------------------- */
+.shm-figs{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));margin:14px 0 8px;align-items:start}
+.shm-fig{margin:0}
+.shm-fig figcaption{font-size:.82rem;color:var(--ink-2);margin-top:4px}
+.shm{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:6px}
+.shm-sea{fill:var(--map-water)}
+.shm-land{fill:var(--map-land);stroke:var(--map-shore);stroke-width:.8;stroke-linejoin:round}
+.shm-grid{fill:none;stroke:var(--map-grid);stroke-width:.6;opacity:.55}
+.shm-box{fill:none;stroke:var(--ink-2);stroke-width:1.6;stroke-dasharray:7 4}
+.shm-cs{fill:none;stroke:var(--ink-3);stroke-width:1.2}
+.shm-sscofs{fill:none;stroke:var(--map-nws);stroke-width:1.2;stroke-dasharray:3 3}
+.shm-cell{fill:var(--map-cell);fill-opacity:.14;stroke:var(--map-cell);stroke-width:2.2;stroke-linejoin:round}
+.shm-cell-dot{fill:var(--map-cell)}
+.shm-nws{fill:none;stroke:var(--map-nws);stroke-width:1.8;stroke-dasharray:4 3}
+.shm-ring{fill:var(--map-ring);fill-opacity:.05;stroke:var(--map-ring);stroke-width:1.6;stroke-dasharray:6 4}
+.shm-cz{fill:none;stroke:var(--map-cz);stroke-width:1.4;stroke-dasharray:2 3}
+.shm-cz-dot{fill:var(--map-cz)}
+.shm-mk rect,.shm-mk circle,.shm-mk path{fill:var(--ink);stroke:var(--map-land);stroke-width:1.2}
+.shm-mk-tide circle{fill:var(--accent-2)}
+.shm-mk-current path{fill:var(--ok)}
+.shm-mk-point path{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-linecap:round}
+.shm-mk-point .shm-halo{fill:var(--bg);fill-opacity:.7;stroke:none}
+.shm text{font-family:var(--sans);font-size:12px;fill:var(--ink);paint-order:stroke;
+  stroke:var(--map-water);stroke-width:3px;stroke-linejoin:round}
+.shm .shm-place{font-size:11px;font-style:italic;fill:var(--ink-3);stroke:var(--map-land)}
+.shm .shm-lbl-pt{font-weight:600}
+.shm .shm-lbl-ring{fill:var(--map-ring)}
+.shm .shm-lbl-cs{fill:var(--ink-3)}
+.shm-scale path{fill:none;stroke:var(--ink-2);stroke-width:1.5}
+.shm-scale text{font-size:11px;fill:var(--ink-2)}
+.shm-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--ink-2);margin:0 0 10px}
+.shm-keyitem{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.shm-sw{width:13px;height:13px;border-radius:2px;flex:0 0 auto;box-sizing:border-box}
+.shm-sw-box{border:2px dashed var(--ink-2)}
+.shm-sw-cell{background:var(--map-cell);border:2px solid var(--map-cell);opacity:.6}
+.shm-sw-grid{border:1px solid var(--map-grid)}
+.shm-sw-nws{border:2px dashed var(--map-nws)}
+.shm-sw-point{background:var(--ink);clip-path:polygon(20% 0,50% 30%,80% 0,100% 20%,70% 50%,100% 80%,80% 100%,50% 70%,20% 100%,0 80%,30% 50%,0 20%)}
+.shm-sw-wind{background:var(--ink);transform:rotate(45deg);width:10px;height:10px}
+.shm-sw-tide{background:var(--accent-2);border-radius:50%}
+.shm-sw-current{background:var(--ok);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.shm-sw-ring{border:2px dashed var(--map-ring);border-radius:50%}
+.shm-sw-cs{border:1.5px solid var(--ink-3)}
+.shm-sw-cz{border-top:2px dotted var(--map-cz);height:0;margin-top:2px}
+.shm-list{margin:8px 0;padding-left:20px;font-size:.9rem}
+.shm-list li{margin:4px 0}
+
+/* ---- Shilshole: convergence zone (ported from Lake Union) --------------- */
+.sh-cz-key{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 0;font-size:.78rem;color:var(--ink-2)}
+.sh-cz-key > span{display:inline-flex;align-items:center;gap:.35rem}
+.sh-cz-ramp{display:inline-flex;border-radius:2px;overflow:hidden}
+.sh-cz-ramp i{display:inline-block;width:9px;height:11px}
+.sh-cz-key i.sh-cz-k-home{display:inline-block;width:16px;height:0;border-top:1.5px dashed var(--ink)}
+.sh-cz-key i.sh-cz-k-seam{display:inline-block;width:2px;height:12px;background:var(--ink)}
+.sh-cz-key i.sh-cz-k-now{display:inline-block;width:8px;height:11px;border:1.4px solid var(--accent);border-radius:1px}
+.sh-cz-hint{margin:4px 0 0;font-size:.78rem;color:var(--ink-3);font-style:italic}
+.sh-cz-said li .muted{font-size:.8rem}
+details.sh-cz-more{margin:8px 0}
+details.sh-cz-more summary{cursor:pointer;color:var(--ink-2)}
+details.sh-cz-more summary:hover{color:var(--ink)}
+
+/* ---- mobile ------------------------------------------------------------ */
+/* Grid and flex items default to min-width:auto, so they refuse to shrink
+   below their content's min-content width. At 375 px the model panes stayed
+   519 px wide inside a 329 px track and .mv had overflow-x:hidden, so ~190 px
+   of every model image was clipped and unreachable — measured, not guessed. */
+.mv-grid,.mv-cell,.mv-slot,.mv-key{min-width:0}
+.mv-slot img,.mv-key img{max-width:100%}
+
+/* The pane header carries a label, a lead and the hover readout; on a phone
+   they need to wrap rather than force the cell wide. */
+.mv-pick{flex-wrap:wrap;row-gap:4px}
+.cv-readout{margin-left:0;min-width:0;text-align:left}
+
+/* One unbreakable source URL was the ENTIRE cause of the page scrolling
+   sideways: 394 px wide in a 375 px viewport. */
+footer a,.afd-p a{overflow-wrap:anywhere}
+
+/* Nothing may exceed the viewport. Media is the usual culprit; tables stay
+   scrollable inside .tablewrap, which is deliberate. */
+img,object,svg,video{max-width:100%}
+
+@media (max-width: 600px){
+  .wrap{padding-left:12px;padding-right:12px}
+  /* Full-bleed maps are portrait-tall; cap them so they do not eat the screen. */
+  .fig.wide{max-width:100%}
+  .fig.wide img{max-height:70vh;width:auto;margin:0 auto;display:block}
+  /* Controls wrap instead of overflowing. */
+  .mv-controls{flex-wrap:wrap;row-gap:6px}
+  .mv-controls input[type=range]{min-width:100%;order:10}
+  /* The valid-time label is nowrap, so flex-wrap alone could not contain it:
+     at 375 px it measured 442 px and pushed the whole PAGE sideways. That was
+     invisible only because .mv used to clip with overflow:hidden. */
+  .mv-time{white-space:normal;flex:1 1 100%;min-width:0}
+  /* Shorter on a phone. At 55vh the scroller took over half the screen, so a
+     thumb swipe anywhere near the middle scrolled the transcript rather than
+     the page — and getting PAST it is the common action, reading it the rare
+     one. 42vh leaves clear page above and below to swipe on. */
+  .tx-body{max-height:42vh}
+  .jump a{font-size:.82rem}
+  .outlook{padding:10px 12px}
+  .lv-tag{min-width:8ch}
+}
+
+@media (max-width: 600px){
+  /* The issue-times table is three narrow columns of monospace timestamps; at
+     375 px every cell wrapped to five lines. Restacked so each product is one
+     block: name, then local time, then UTC underneath in smaller type. */
+  table.times,table.times tbody,table.times tr,table.times td,table.times th{
+    display:block;width:100%}
+  table.times tr{border:1px solid var(--line-2);border-radius:6px;
+    padding:7px 10px;margin-bottom:6px;background:var(--bg-2)}
+  table.times th{font-size:.86rem;padding:0 0 2px;border:0;text-align:left}
+  table.times td{border:0;padding:0;font-size:.82rem;line-height:1.4}
+  table.times td:nth-child(2){font-weight:600}
+  table.times td:nth-child(3){color:var(--ink-3);font-size:.76rem}
+  table.times td:nth-child(4){color:var(--ink-3);font-size:.76rem}
+  /* The manifest has one column more than the freshness table — age, local,
+     UTC, then the source note. */
+  table.times td:nth-child(5){color:var(--ink-3);font-size:.76rem}
+  table.times td:empty{display:none}
+}
+
+/* ---- dedicated model comparison page ----------------------------------- */
+.cmp-h1{margin:18px 0 6px;font-size:1.5rem}
+.cmp-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;
+  flex-wrap:wrap;padding:8px 0;margin:10px 0 6px;background:var(--bg);
+  border-bottom:1px solid var(--line)}
+.cmp-layout{display:flex;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.cmp-layout button{font:inherit;font-size:.82rem;padding:6px 12px;border:0;
+  background:var(--bg-2);color:var(--ink-2);cursor:pointer}
+.cmp-layout button.on{background:var(--accent);color:var(--on-accent)}
+.cmp-time{font-family:var(--mono);font-size:.82rem}
+.cmp-time b{color:var(--accent)}
+
+/* Layout is driven by data-cols AND orientation. Two panes in portrait stack
+   full width — on a phone, two side-by-side maps are too small to read — and
+   go side by side in landscape, which is the comparison view. */
+.cmp-grid{display:grid;gap:1px;background:var(--line);grid-template-columns:1fr}
+.cmp-grid[data-cols="2"] .cmp-cell:nth-child(n+3){display:none}
+.cmp-cell{background:var(--bg);min-width:0;padding:8px 10px 12px}
+.cmp-ctl{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.cmp-ctl input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+/* color is NOT optional here. Without it a button falls back to the browser's
+   own ButtonText, which stays dark on a dark page — the arrows all but
+   disappeared in dark mode. .mv-controls button always set it; this did not. */
+.cmp-ctl button{font:inherit;font-size:.8rem;padding:4px 9px;border:1px solid var(--line);
+  border-radius:6px;background:var(--bg-2);color:var(--ink);cursor:pointer;min-width:34px}
+.cmp-ctl button:hover{background:var(--bg-3)}
+.cmp-pick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.cmp-pick select{font:inherit;font-size:.82rem;padding:4px 8px;border-radius:5px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);flex:1;min-width:0}
+.cmp-lead{font-family:var(--mono);font-size:.74rem;color:var(--ink-3);white-space:nowrap}
+.cmp-slot{position:relative;width:100%;min-width:0}
+.cmp-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cmp-empty{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:3px;
+  color:var(--ink-3);font-size:.84rem;
+  background:repeating-linear-gradient(45deg,var(--bg-2),var(--bg-2) 9px,
+    var(--bg) 9px,var(--bg) 18px)}
+.cmp-empty span{font-size:.76rem}
+.cmp-key{padding:4px 0 2px}
+.cmp-key img{max-height:66px;width:auto;max-width:100%;display:block;margin:0 auto}
+
+/* Every rule that sets a column count also sets the row count, because the
+   slot cap divides by it. Narrow portrait: one column, so two panes are two
+   rows. */
+.cmp-grid[data-cols="2"]{grid-template-columns:1fr;--cmp-rows:2}
+.cmp-grid[data-cols="4"]{grid-template-columns:1fr 1fr;--cmp-rows:2}
+/* Landscape, or any screen wide enough: panes side by side. Two panes then
+   occupy ONE row and get the whole screen height between them — this is the
+   desktop reading of the page, not a phone fallback. */
+@media (min-width: 700px), (orientation: landscape) and (min-width: 560px){
+  .cmp-grid[data-cols="2"]{grid-template-columns:1fr 1fr;--cmp-rows:1}
+}
+@media (max-width: 430px) and (orientation: portrait){
+  /* Four panes on a narrow portrait phone would be postage stamps; one column
+     and the page scrolls to them rather than shrinking further. */
+  .cmp-grid[data-cols="4"]{grid-template-columns:1fr;--cmp-rows:4}
+}
+
+/* Issued hazards sit ABOVE the derived outlook and are visually louder: these
+   are what NWS actually published, the others are inferred from wind. */
+.issued{border:1px solid var(--issued-line);border-left:4px solid var(--issued-rule);border-radius:8px;
+  padding:12px 16px;margin:14px 0 10px;background:var(--issued-bg)}
+.issued > strong{color:var(--storm-ink)}
+.issued ul{margin:8px 0 0;padding-left:0;list-style:none}
+.issued li{padding:3px 0;font-size:.92rem;line-height:1.45}
+.lv-gale .lv-tag,.issued .lv-tag{background:var(--gale-bg);color:var(--gale-ink);border:1px solid var(--gale-line)}
+
+/* ---- viewer controls stay reachable ------------------------------------ */
+/* The time control sat only at the top of the viewer, so reading the bottom
+   pane of a 2x2 meant scrolling back up to step a frame and back down to see
+   the result. Sticky keeps ONE control always in reach, which beats duplicating
+   sliders: several copies of the same control drift out of sync visually and
+   double the tab stops. */
+.mv-controls{position:sticky;top:0;z-index:30;background:var(--bg);
+  box-shadow:0 1px 0 var(--line)}
+
+/* Two rows of panes plus their headers ran past a laptop screen, so a 2x2 could
+   never be seen at once — which is the entire point of a 2x2. Capping the slot
+   height makes both rows fit; object-fit:contain means nothing is cropped, the
+   image just letterboxes in a shorter box. */
+/* Size each image slot from the height ACTUALLY left over, not from a fixed
+   fraction of the viewport. The chrome around the grid — control bar, the
+   per-pane picker, the legend — is fixed-height, so a plain `34vh` per slot
+   overshoots by more and more as the screen gets shorter: it fitted a 900 px
+   viewport and missed a 760 px one by 25 px. Subtracting the chrome first makes
+   the 2x2 fit at every height instead of at one.
+   --mv-chrome / --cmp-chrome are measured, and there is a tripwire test. */
+/* Chrome splits into a part paid ONCE per viewer (control bar, shared legend)
+   and a part paid PER ROW (pane header, its key line, cell padding). Charging
+   the per-row part once was why a single-row viewer got a cap meant for two:
+   the currents pair is 1x2, so halving its height shrank the maps for a second
+   row that does not exist. Same on the comparison page, where two panes sit
+   side by side on a desktop and stack only on a phone.
+   Measured against BOTH layouts, which is what pinned the two constants: the
+   comparison page's real chrome is 219 at one row and 309 at two, so 125 + n*95
+   satisfies each (220 / 315). Solving for one layout alone left the other over —
+   two panes fitted 900 but missed 760 by 14. There is a tripwire test. */
+/* --mv-perrow keeps ~11px of slack per row ON PURPOSE. .mv-key is empty and
+   display:none in the normal case, but a run whose frames straddle two model
+   cycles puts a warning there. Tuning the budget down to the empty case would
+   reclaim ~22px of image height and then overflow the screen exactly when a
+   warning appears — which is the moment the viewer most needs to be readable. */
+/* +44 per row for .mv-read, the readout under each pane, held at TWO lines
+   (was +26 for one): see .mv-read below. */
+.mv{--mv-fixed:142px;--mv-perrow:101px;--mv-rows:2}
+/* The currents pair's readout is one short line ("1.3 kt current setting NNE
+   012°") and is held at one: +26 on the 57 it had with no readout. */
+#cv{--mv-rows:1;--mv-perrow:83px}
+.cmp-grid{--cmp-fixed:125px;--cmp-perrow:139px;--cmp-rows:2}
+.mv-slot{max-height:calc((100vh - var(--mv-fixed)
+                          - var(--mv-rows) * var(--mv-perrow)) / var(--mv-rows))}
+.cmp-slot{max-height:calc((100vh - var(--cmp-fixed)
+                           - var(--cmp-rows) * var(--cmp-perrow)) / var(--cmp-rows))}
+@media (max-width: 700px){
+  /* On a phone the panes stack, so height is not competing — give them back
+     the room and let the image be as large as the width allows. */
+  .mv-slot{max-height:none}
+  .cmp-slot{max-height:none}
+}
+@media (orientation: landscape) and (max-height: 500px){
+  /* Phone in landscape: very little vertical room, and the sticky bar plus two
+     pane headers would leave almost nothing for the map. */
+  .mv-slot,.cmp-slot{max-height:52vh}
+  .cmp-bar{position:static}
+}
+
+/* .mv must NOT create a scroll container: overflow:hidden on an ancestor makes
+   it the containing block for position:sticky, so the viewer's control bar
+   scrolled away instead of pinning. The clipping it provided is no longer
+   needed now that the grid items carry min-width:0. */
+.mv{overflow:visible}
+
+/* ONE legend under the grid, not one under every pane. Four copies of an
+   identical scale cost 105 px each — 210 px across two rows — which was most of
+   the reason a 2x2 would not fit a laptop screen. The per-pane strip is kept for
+   notes that are genuinely per-pane: UW's own colour bar, a mixed-cycle warning. */
+.mv-key{min-height:0;padding:4px 10px 6px}
+.mv-key:empty{display:none}
+.mv-key img{display:none}
+.mv-legend{padding:8px 0 2px}
+.mv-legend img{max-height:66px;width:auto;max-width:100%;display:block;margin:0 auto}
+
+/* Transcript video tabs. Which upload is the daily forecast can no longer be
+   decided at build time — YouTube withholds the duration and live markers that
+   decision needed — so the last few uploads are offered and the reader picks.
+   Two nested radio groups, no JavaScript: .txvid chooses the video, and each
+   video panel carries its own cleaned/raw pair. */
+.tx-vid{display:none}
+.tx-vidtabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px 0;
+  background:var(--bg-3);border-bottom:1px solid var(--line)}
+.txvid-tab{font-size:.82rem;padding:6px 13px;border:1px solid var(--line);
+  border-bottom:none;border-radius:6px 6px 0 0;background:var(--bg-2);
+  color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.txvid-tab span{color:var(--ink-3);font-size:.75rem;margin-left:5px}
+.txvid-tab:hover{color:var(--ink)}
+.tx-title{margin:12px 18px 0}
+.tx-links{margin:6px 0 14px;padding-left:20px}
+.tx-links li{margin:3px 0}
+
+/* Zone names beside the codes in the page-top hazard list. "PZZ132, PZZ133"
+   alone assumes the reader has the zone numbers memorised. */
+.hz-name{color:var(--ink-2)}
+.hz-sep{color:var(--ink-3)}
+
+/* A hazard published in a zone's own bulletin, repeated on that zone. The
+   badge row above it comes from the ACTIVE alerts feed, which by definition
+   does not carry a watch for two days out. */
+.zone-issued{margin:8px 0 2px;padding:7px 11px;border-radius:6px;
+  background:var(--issued-bg);border:1px solid var(--issued-line);font-size:.9rem;line-height:1.45}
+
+/* Shade a table cell by the threshold its wind reaches, so a gale is findable
+   by scanning rather than by reading every number. Kept pale: the text must
+   stay the thing you read, and the shading only ranks it. */
+.cell-lv-sca{background:var(--cell-sca)}
+.cell-lv-gale{background:var(--cell-gale)}
+.cell-lv-storm{background:var(--cell-storm)}
+
+/* One card per model. The viewer lets any pane show any of three models with
+   quite different tradeoffs — 3 km hourly against 1.33 km pre-rendered — so the
+   reader needs to know which is which before the panes mean anything. */
+.modelcards{display:grid;gap:14px;margin:14px 0 18px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.modelcard{border:1px solid var(--line);border-radius:8px;padding:12px 15px;
+  background:var(--bg-2)}
+.modelcard h4{margin:0 0 8px;font-size:1rem}
+.modelcard h4 span{display:block;font-weight:400;font-size:.8rem;color:var(--ink-3)}
+.modelcard dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;
+  margin:0 0 9px;font-size:.85rem}
+.modelcard dt{color:var(--ink-3);white-space:nowrap}
+.modelcard dd{margin:0}
+.modelcard .plus,.modelcard .minus{margin:5px 0 0;font-size:.85rem;line-height:1.45;
+  padding-left:17px;position:relative}
+.modelcard .plus::before{content:"+";position:absolute;left:2px;color:var(--plus-ink);font-weight:700}
+.modelcard .minus::before{content:"\2212";position:absolute;left:2px;color:var(--minus-ink);font-weight:700}
+
+/* The comparison page is a viewer, not an article: its whole job is to show
+   the panes as large as the screen allows. The 1180 px reading column left two
+   side-by-side panes width-limited with ~190 px of vertical space unused, so
+   here the grid is allowed the full window and the height cap becomes the
+   binding constraint again — which is the one that keeps it on one screen. */
+body:has(.cmp) .wrap{max-width:none}
+.cmp-h1,.cmp + p,.cmp-intro{max-width:1180px;margin-left:auto;margin-right:auto}
+.cmp{max-width:min(2100px, 100%);margin:0 auto}
+
+/* Key for the table's cell shading. Without it the shading is decoration: the
+   reader can see that some cells are warmer than others but not at what wind. */
+.cellkey{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 10px;
+  font-size:.82rem;color:var(--ink-2)}
+.cellkey-lead{color:var(--ink-3)}
+.ck{padding:3px 9px;border:1px solid var(--line);border-radius:4px;white-space:nowrap}
+.ck-none{background:var(--bg)}
+.cellkey-note{flex:1 1 100%;color:var(--ink-3);font-size:.8rem;line-height:1.45}
+
+/* ---- dark theme --------------------------------------------------------- */
+/* Three states, which is what makes this fiddly: an explicit choice stamps
+   data-theme on <html> and must win in BOTH directions, while the default
+   "system" setting stamps nothing and is decided by prefers-color-scheme. So
+   the dark tokens are declared twice — once under the media query guarded
+   against an explicit light choice, once under the explicit dark attribute.
+   Every value below is a token already defined in :root, so no rule needs
+   touching.
+
+   The status colours are not simply darkened: on a dark ground a pale wash
+   reads as brighter than the page, so gale/storm become deep grounds with
+   light ink, keeping the same ordering (calm -> sca -> gale -> storm) that the
+   light theme has. */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#e5eaf0; --ink-2:#b3c0cd; --ink-3:#8493a3;
+    --line:#2b3947; --line-2:#222e3a;
+    --bg:#0f1720; --bg-2:#16202b; --bg-3:#1c2733;
+    --accent:#6fb3e8; --accent-2:#f08b5f;
+    --warn-bg:#3a2a12; --warn-line:#8a6524; --warn-ink:#f0c98a;
+    --alert-bg:#3a1b19; --alert-line:#a34a45; --alert-ink:#f5b3ae;
+    --ok:#4ec48a;
+    --sca-bg:#3d2f0e;  --sca-ink:#f2d08a;  --sca-line:#8a6d21;
+    --gale-bg:#4a2a12; --gale-ink:#f9c396; --gale-line:#a55f2c;
+    --storm-bg:#4d1d1d;--storm-ink:#f7b0b0;--storm-line:#a34848;
+    --smw-bg:#8f1f1b;  --smw-ink:#ffffff;
+    --cell-sca:#332c10; --cell-gale:#3e2513; --cell-storm:#401c1c;
+    --issued-bg:#2a1516; --issued-line:#a34848; --issued-rule:#e05252;
+    --outlook-rule:#c98a2e;
+    --plus-ink:#5fc98a; --minus-ink:#f0a074;
+    --ltg-none:#1f2b37; --ltg-trace:#6b5c33; --ltg-possible:#c9a031;
+    --ltg-likely:#d06a26; --ltg-strong:#d8452f;
+    --uv-low:#3ea72d; --uv-mod:#fff300; --uv-high:#f18b00; --uv-vhigh:#e53210; --uv-extreme:#b567a4;
+    --cape-ink:#fbbf24; --cin-ink:#94a3b8;
+    --refc-bg:#0d1620; --refc-coast:#7fa8c8; --refc-mark:#166534; --refc-mark-ring:#ffffff;
+    --cz-conv:#60a5fa; --cz-div:#fbbf24;
+    --map-land:#1b2530; --map-water:#16324a; --map-shore:#5b8ba6; --map-grid:#8a9aab;
+    --map-cell:#6fb3e8; --map-nws:#5eead4; --map-ring:#f08b5f; --map-cz:#c4a2f0;
+    --on-accent:#0f1720;
+    --scrim:rgba(15,23,32,.96); --scrim-2:rgba(22,32,43,.94);
+    --shadow:rgba(0,0,0,.5); --hairline:rgba(255,255,255,.18);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e5eaf0; --ink-2:#b3c0cd; --ink-3:#8493a3;
+  --line:#2b3947; --line-2:#222e3a;
+  --bg:#0f1720; --bg-2:#16202b; --bg-3:#1c2733;
+  --accent:#6fb3e8; --accent-2:#f08b5f;
+  --warn-bg:#3a2a12; --warn-line:#8a6524; --warn-ink:#f0c98a;
+  --alert-bg:#3a1b19; --alert-line:#a34a45; --alert-ink:#f5b3ae;
+  --ok:#4ec48a;
+  --sca-bg:#3d2f0e;  --sca-ink:#f2d08a;  --sca-line:#8a6d21;
+  --gale-bg:#4a2a12; --gale-ink:#f9c396; --gale-line:#a55f2c;
+  --storm-bg:#4d1d1d;--storm-ink:#f7b0b0;--storm-line:#a34848;
+  --smw-bg:#8f1f1b;  --smw-ink:#ffffff;
+  --cell-sca:#332c10; --cell-gale:#3e2513; --cell-storm:#401c1c;
+  --issued-bg:#2a1516; --issued-line:#a34848; --issued-rule:#e05252;
+  --outlook-rule:#c98a2e;
+  --plus-ink:#5fc98a; --minus-ink:#f0a074;
+  --ltg-none:#1f2b37; --ltg-trace:#6b5c33; --ltg-possible:#c9a031;
+  --ltg-likely:#d06a26; --ltg-strong:#d8452f;
+  --uv-low:#3ea72d; --uv-mod:#fff300; --uv-high:#f18b00; --uv-vhigh:#e53210; --uv-extreme:#b567a4;
+  --cape-ink:#fbbf24; --cin-ink:#94a3b8;
+  --refc-bg:#0d1620; --refc-coast:#7fa8c8; --refc-mark:#166534; --refc-mark-ring:#ffffff;
+  --cz-conv:#60a5fa; --cz-div:#fbbf24;
+  --map-land:#1b2530; --map-water:#16324a; --map-shore:#5b8ba6; --map-grid:#8a9aab;
+  --map-cell:#6fb3e8; --map-nws:#5eead4; --map-ring:#f08b5f; --map-cz:#c4a2f0;
+  --on-accent:#0f1720;
+  --scrim:rgba(15,23,32,.96); --scrim-2:rgba(22,32,43,.94);
+  --shadow:rgba(0,0,0,.5); --hairline:rgba(255,255,255,.18);
+}
+
+/* The panels, maps and meteograms are rendered on white by matplotlib and
+   cartopy. Left alone they glare on a dark page. Knocking their brightness
+   back a little settles them into it WITHOUT inverting — an inverted map is a
+   different map, and this page is a navigation aid. */
+:root[data-theme="dark"] .fig img,
+:root[data-theme="dark"] .mv-slot img,
+:root[data-theme="dark"] .cmp-slot img,
+:root[data-theme="dark"] .chart-svg,
+:root[data-theme="dark"] .mv-legend img,
+:root[data-theme="dark"] .cmp-key img{filter:brightness(.88) contrast(1.02)}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .fig img,
+  :root:not([data-theme="light"]) .mv-slot img,
+  :root:not([data-theme="light"]) .cmp-slot img,
+  :root:not([data-theme="light"]) .chart-svg,
+  :root:not([data-theme="light"]) .mv-legend img,
+  :root:not([data-theme="light"]) .cmp-key img{filter:brightness(.88) contrast(1.02)}
+}
+
+.themetoggle{font:inherit;font-size:.78rem;padding:4px 10px;border:1px solid var(--line);
+  border-radius:6px;background:var(--bg-2);color:var(--ink-2);cursor:pointer;
+  white-space:nowrap;margin-left:auto}
+.themetoggle:hover{color:var(--ink);background:var(--bg-3)}
+
+/* The table is extracted FROM the bulletins, so the row label is the natural
+   way back to the one it came from. */
+.zonelink{color:inherit;text-decoration:none;display:block}
+.zonelink:hover{color:var(--accent);text-decoration:underline}
+.zonelink:hover .cell-sub{color:var(--accent)}
+
+/* ---- browser-drawn charts ----------------------------------------------- */
+/* Structural parts carry classes rather than literal colours so they follow the
+   theme without the chart being redrawn. Series colours come from the payload:
+   the model colours read on both grounds, and observed is sent as var(--ink). */
+.chart-host{position:relative;width:100%}
+.chart-host svg{display:block;width:100%;height:auto}
+.ch-grid{stroke:var(--line);stroke-width:.6}
+.ch-tick{fill:var(--ink-3);font-size:9.5px;font-family:var(--sans)}
+.ch-date{font-size:9px;opacity:.85}
+.ch-rowlab{fill:var(--ink-2);font-size:10.5px;font-weight:650;font-family:var(--sans)}
+.ch-noobs{fill:var(--minus-ink);font-size:10px;font-family:var(--sans)}
+/* "Now" — the join between the station's own record and the forecast. */
+.ch-now{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:2 3;opacity:.8}
+.ch-guide{stroke:var(--accent);stroke-width:1.2;stroke-dasharray:3 3}
+
+/* The readout. Absolutely positioned inside the host and moved by the script,
+   which flips it to the other side of the crosshair past halfway — centred, it
+   covered the very hour being read. */
+.hov{position:absolute;top:6px;z-index:5;pointer-events:none;
+  background:var(--bg);border:1px solid var(--line);border-radius:7px;
+  padding:7px 10px;font-size:.78rem;line-height:1.5;
+  box-shadow:0 2px 10px var(--shadow);max-width:min(17rem,calc(100% - 12px))}
+.hov[hidden]{display:none}
+.hov > b{display:block;margin-bottom:3px;color:var(--ink);font-size:.79rem}
+/* The label ellipsizes; the value never does. nowrap on the whole row let a
+   long station name grow the box straight past its max-width and off the
+   panel. */
+.hov span{display:flex;align-items:center;gap:6px;color:var(--ink-2);overflow:hidden}
+.hov .lbl{font-weight:400;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;min-width:0;flex:1}
+.hov i{width:9px;height:9px;border-radius:2px;flex:none}
+/* flex:none — the VALUE is the thing being read and must never be the part
+   that gets clipped; the label ellipsizes instead. */
+.hov em{font-style:normal;font-weight:650;color:var(--ink);margin-left:auto;
+  flex:none;font-family:var(--mono);font-size:.76rem}
+.hov u{display:block;margin:5px 0 1px;text-decoration:none;color:var(--ink-3);
+  font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}
+.hov u:first-of-type{margin-top:2px}
+/* Zero on a signed row. Heavier than a gridline because crossing it is the
+   event: the gradient wind reverses direction down the axis. */
+.ch-zero{stroke:var(--ink-3);stroke-width:1.1;opacity:.85}
+
+/* Sea surface temperature: one number that should be readable across a cabin,
+   with its context beside rather than under it. */
+.sst-now{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:12px 0 10px;
+  padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2)}
+.sst-val{display:flex;align-items:baseline;gap:9px}
+.sst-val strong{font-size:2.1rem;line-height:1;color:var(--accent)}
+.sst-val span{font-size:1rem;color:var(--ink-3);font-family:var(--mono)}
+.sst-meta{font-size:.86rem;line-height:1.5}
+.sst-alt{color:var(--ink-3);font-size:.82rem;font-family:var(--mono);margin-left:5px}
+/* Air against water, read across rather than down: the comparison IS the point. */
+.airsea{display:flex;flex-wrap:wrap;gap:10px 22px;margin:12px 0 8px;padding:10px 14px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg-2);font-size:.95rem}
+.airsea > div{display:flex;align-items:baseline;gap:5px}
+.as-lab{color:var(--ink-3);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+.fog-condition-met{color:var(--gale-ink)}
+.fog-marginal{color:var(--sca-ink)}
+/* A stale reading is shown, not hidden — but it must never look current. */
+.as-stale{opacity:.6}
+.as-age{color:var(--gale-ink);font-size:.76rem;font-weight:650}
+/* "Now" from the reader's own clock. The band covers the current hour — the
+   same hour the crosshair snaps to — and the line marks the instant. */
+.ch-nowband{fill:var(--accent);opacity:.09}
+.ch-nowlab{fill:var(--accent);font-size:9px;font-weight:650;font-family:var(--sans)}
+
+/* Staleness. Loud when a safety-critical source is behind, quiet otherwise —
+   a page that cannot say it is out of date is worse than no page. */
+.stale-alarm{margin:12px 0;padding:12px 16px;border:2px solid var(--issued-rule);
+  border-radius:8px;background:var(--issued-bg);color:var(--storm-ink);line-height:1.5}
+.stale-alarm strong{display:block;margin-bottom:4px;font-size:1.02rem}
+.stale-alarm .stale-list span{display:block}
+/* The note's list is one running sentence, not a stack, so the separator has to
+   be here: assets/times.js rebuilds these as bare elements and the punctuation
+   the template used to interleave went with them — "…(not dated)High Seas
+   Forecast (5 d 3 h)Satellite and radar…". ::before, not text, so what the
+   element SAYS stays exactly the label and its age. */
+.stale-note .stale-list span + span::before{content:", "}
+.stale-note .stale-list::after{content:"."}
+.stale-alarm .stale-tail{display:block;margin-top:6px}
+.stale-alarm a{color:var(--storm-ink);font-weight:650}
+.stale-note{margin:10px 0;padding:9px 13px;border:1px solid var(--sca-line);
+  border-radius:7px;background:var(--sca-bg);color:var(--sca-ink);font-size:.88rem;line-height:1.45}
+.freshness{margin:8px 0 4px;font-size:.85rem}
+.freshness summary{cursor:pointer;color:var(--ink-3)}
+.freshness summary:hover{color:var(--ink)}
+/* Two ways a row is late, and they must look the same. .fr-stale is what the
+   BUILD found; .is-stale is what assets/times.js finds afterwards, against the
+   reader's own clock — which on a page rebuilt twice a day is most of a
+   product's life. A row the build passed and the reader's clock fails has to
+   read identically, or the distinction becomes a claim about severity. */
+.fr-stale th,.fr-stale td,.fr.is-stale th,.fr.is-stale td{
+  color:var(--gale-ink);font-weight:650}
+
+/* The manifest's age column carries the answer to the question the table is
+   there for, so it leads rather than trailing the timestamps it summarises. */
+.manifest .mf-age{font-weight:650}
+.manifest .mf-undated{color:var(--gale-ink);font-weight:650}
+
+/* Says the box scrolls, and how much there is, without the reader discovering
+   it by accident. */
+.tx-scrollnote{display:flex;justify-content:space-between;gap:10px;
+  padding:6px 18px 0;font-size:.76rem;color:var(--ink-3)}
+/* Reload a satellite or radar image from its source. */
+.refreshbtn{font:inherit;font-size:.74rem;padding:2px 9px;margin-left:6px;
+  border:1px solid var(--line);border-radius:5px;background:var(--bg-2);
+  color:var(--ink-2);cursor:pointer;vertical-align:middle}
+.refreshbtn:hover:not(:disabled){color:var(--ink);background:var(--bg-3)}
+.refreshbtn:disabled{opacity:.65;cursor:default}
+/* "loading 28.1 MB…" while a loop is on its way in. */
+.loopstate{position:absolute;left:8px;top:8px;z-index:2;font-size:.74rem;
+  padding:2px 8px;border-radius:4px;background:var(--scrim-2);color:var(--ink-2)}
+.loopstate:empty{display:none}
+#refresh-all{margin-left:0}
+
+/* ---- compact ------------------------------------------------------------
+   Folds the notes explaining how to read each section. What it hides is
+   .explain and nothing else, and .explain is applied by hand in the template
+   to prose that teaches — a chart's legend, what the model cards describe,
+   which box a current frame covers.
+
+   It is deliberately NOT applied to any caveat: the ASCAT resolution limit,
+   the blanks in the regex-extracted table, the transcript's attribution, what
+   the rebuild schedule does and does not promise, the tidal columns' rule.
+   Those are the honesty layer, and a reader who folded the explanations has
+   not asked to be told less about the limits of what they are looking at.
+
+   Nothing is hidden by default, and never by viewport: see wireCompact() in
+   assets/ui.js. */
+.compact .explain{display:none}
+
+/* ---- at a glance --------------------------------------------------------
+   Below the issued hazards: those are what NWS actually published, and nothing
+   derived here outranks them. Tiles wrap rather than scroll — four of them at
+   375 px is two rows, which is fine, where a sideways scroll hides the fourth
+   entirely and gives no sign it is there. */
+.glance{margin:12px 0 4px}
+.glance-head{margin-bottom:7px;font-size:.9rem;line-height:1.45}
+.glance-head strong{margin-right:6px}
+.glance-tiles{display:flex;flex-wrap:wrap;gap:8px}
+.gt{flex:1 1 150px;min-width:0;padding:9px 12px;border:1px solid var(--line-2);
+  border-radius:8px;background:var(--bg-2)}
+.gt-lab{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3)}
+.gt-val{font-family:var(--mono);font-size:1.42rem;font-weight:650;line-height:1.25}
+.gt-unit{margin-left:3px;font-size:.82rem;font-weight:500;color:var(--ink-3)}
+.gt-sub{font-size:.78rem;color:var(--ink-2);line-height:1.35}
+.gt-note{margin-top:3px;font-size:.72rem;color:var(--ink-3);line-height:1.35}
+
+/* The SAME three levels the zone table shades by, so a gale in a tile and a
+   gale in a cell are the same colour. Anything below small craft gets no
+   colour at all: a tile that is always tinted says nothing by being tinted. */
+.gt-sca{border-color:var(--sca-line);background:var(--sca-bg)}
+.gt-sca .gt-val{color:var(--sca-ink)}
+.gt-gale{border-color:var(--gale-line);background:var(--gale-bg)}
+.gt-gale .gt-val{color:var(--gale-ink)}
+.gt-storm{border-color:var(--storm-line);background:var(--storm-bg)}
+.gt-storm .gt-val{color:var(--storm-ink)}
+
+/* ---- scrubbing a chart on a touch screen -------------------------------- */
+
+/* A long press on the plot raised the system "Copy image" callout over the
+   chart instead of reading the hour under the finger. */
+.chart-host{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.chart-host svg{-webkit-user-select:none;user-select:none}
+
+/* Hover is the real question, not screen size: a tablet with a keyboard has
+   room for a wide chart and still cannot hover, and a narrow desktop window
+   can. */
+.chart-scrub{display:none;width:100%;margin:6px 0 0;accent-color:var(--accent)}
+@media (hover:none) and (pointer:coarse){
+  /* Comfortably thumb-sized. The default track is about 4 px tall inside a
+     16 px control, which on glass is a miss more often than a hit. */
+  .chart-scrub{display:block;height:28px}
+
+  /* The readout, on a device that cannot hover. Floating over the plot it
+     covered 208 px of a 269 px chart and 214 px of its 276 — measured on the
+     live page at 375 px — so the crosshair pointed at an hour the box was
+     standing on. In normal flow it sits between the chart and its slider,
+     costs the panel nothing, and reads as a caption for the hour the slider
+     is parked on. */
+  .chart-host .hov{position:static;margin:6px 0 0;max-width:none;display:block}
+  .chart-host .hov[hidden]{display:none}
+  /* STACKED, one field per line, value against the right edge. As a wrapping
+     flex row the fields packed one, two or three to a line depending on how
+     wide that hour's values happened to be — so the box resized as the slider
+     moved, and nothing lined up to scan. */
+  .chart-host .hov span{display:grid;grid-template-columns:10px 1fr auto;
+    align-items:baseline;column-gap:.45rem;padding:1.5px 0;line-height:1.35;
+    white-space:normal}
+  .chart-host .hov span em{text-align:right}
+  .chart-host .hov span i{align-self:center}
+}
+
+/* ---- model map readout -------------------------------------------------
+   The numbers under a hovered or tapped point, on a line of their own under
+   the image rather than in a box over it: on a phone a floating box covers the
+   very water it is describing. TWO lines, reserved whether or not it has text:
+   the wind readout is one line and the REFS and run-to-run ones often two, and
+   a strip that grew and shrank as the pointer crossed the map shifted every
+   pane below it by a line each time. Fixed, not a minimum — a third line on a
+   narrow pane scrolls inside the strip rather than moving the maps. Counted in
+   --mv-perrow / --cmp-perrow for the same reason. */
+.mv-read{height:calc(2 * 1.45em + 9px);overflow-y:auto;padding:4px 10px;box-sizing:border-box;
+  font-family:var(--mono);font-size:.74rem;line-height:1.45;color:var(--ink);
+  background:var(--bg);border-top:1px solid var(--line-2);overflow-wrap:anywhere}
+/* Idle, it says what it is for — an empty strip under a map says nothing about
+   what it does. The hint comes from the pane (data-hint), because a UW pane has
+   no values behind it and must not invite a tap that will not answer. */
+.mv-read.probe-idle::before{content:attr(data-hint);color:var(--ink-3)}
+/* Wind | Fog: a segmented pair in the control bar; the lit one is the view the
+   four panes are showing right now. */
+.mv-views{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.mv-views button{border:0;border-radius:0;margin:0}
+.mv-views button+button{border-left:1px solid var(--line)}
+.mv-views button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+/* The currents readout is one line; holding a second for it would only be
+   empty space under both maps. */
+#cv .mv-read{height:calc(1.45em + 9px)}
+@media (max-width: 700px){
+  /* Stacked on a phone nothing sits beside a pane to be shifted, and a third
+     line there is common — let it grow rather than scroll. */
+  .mv-read,#cv .mv-read{height:auto;min-height:calc(2 * 1.45em + 9px)}
+  #cv .mv-read{min-height:calc(1.45em + 9px)}
+}
+/* Where the reading was taken. Needed on a phone above all: after a tap the
+   finger has gone and nothing else marks which water the numbers belong to. */
+/* Two rings in opposite tokens, so one of them contrasts with whatever colour
+   of the map it lands on, in either theme. */
+.probe-dot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;
+  border-radius:50%;background:var(--accent);border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--ink);pointer-events:none;z-index:4}
+.probe-dot[hidden]{display:none}
+.mv-slot,.cmp-slot{cursor:crosshair}
+/* The key for a pane on another scale — REFS spread or chance — drawn in HTML
+   from the same bands the map uses. A pane without its key has colours that
+   mean nothing; the shared legend under the grid is the WIND scale.
+   The numbers sit on the band EDGES, so each marks where a colour starts. */
+.pk{width:100%;max-width:440px;font-size:.66rem;line-height:1.25}
+.pk-cap{color:var(--ink-3);margin-bottom:2px}
+.pk-bar{display:flex;height:8px;border:1px solid var(--line)}
+.pk-bar i{flex:1}
+.pk-tick{position:relative;height:1.3em;margin-top:1px;font-family:var(--mono);
+  color:var(--ink-2)}
+.pk-tick b{position:absolute;transform:translateX(-50%);font-weight:400}
+.cmp-cell .mv-key{border-top:0;padding:2px 0 0;min-height:0}
+
+/* ---- the pane picker: domain, then product ------------------------------
+   The domain is a short fixed choice and gets only the room its longest name
+   needs; the product takes the rest. Wraps rather than squeezing, so on a
+   narrow pane the init/lead note drops to its own line instead of pushing the
+   product name to an ellipsis. */
+.mv-pick,.cmp-pick{flex-wrap:wrap;row-gap:4px}
+.mv-pick select[data-dom],.cmp-pick select[data-dom]{flex:0 0 auto;max-width:42%}
+.mv-pick select[data-prod],.cmp-pick select[data-prod]{flex:1 1 12rem;min-width:0}
